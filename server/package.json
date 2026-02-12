@@ -1,0 +1,16 @@
+{
+  "name": "session-analyzer-server",
+  "version": "1.0.0",
+  "description": "An analyzer for audio session files",
+  "main": "index.js",
+  "scripts": {
+    "test": "run test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.0.2"
+  }
+}
