@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Meyda from 'meyda';
+import PeakMeter from './PeakMeter';
 
 const AudioAnalyzer = ({ fileUrl }) => {
     const [audioData, setAudioData] = useState({ rms: 0, zcr: 0 });
@@ -42,6 +43,17 @@ const AudioAnalyzer = ({ fileUrl }) => {
             <div className="mt-4">
                 <p>RMS Level (Loudness): <strong>{audioData.rms.toFixed(4)}</strong></p>
                 <p>Zero Crossing Rate (Noise/Pitch): <strong>{audioData.zcr}</strong></p>
+            </div>
+            <div className='flex items-end gap-8 bg-gray-900 p-10 rounded-xl text-white'>
+                <PeakMeter level={audioData.rms} />
+
+                <div>
+                    <h2 className='text-2xl font-bold mb-4'>Session Analysis</h2>
+                    <button onClick={startAnalysis} className='bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-mono'>
+                        START_SCAN
+                    </button> 
+                    {/* Waveform and other stats go here */}
+                </div>
             </div>
         </div>
     );
