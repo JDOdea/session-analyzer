@@ -1,37 +1,50 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Meyda from 'meyda';
 
-const AudioAnalyzer = ({ audioFile }) => {
+const AudioAnalyzer = ({ fileUrl }) => {
+    const [audioData, setAudioData] = useState({ rms: 0, zcr: 0 });
     const audioContextRef = useRef(null);
-    const sourceRef = useRef(null);
+    const analyzerRef = useRef(null);
 
-    useEffect(() => {
-        if (!audioFile) return;
-
-        // Initialize web audio context
+    const startAnalysis = async () => {
+        // Initialize audio context
         audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Fetch and decode audio from backend
+        const response = await fetch(fileUrl);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
 
-        // Create an analyser node (standard web audio)
-        const analyser = audioContextRef.current.createAnalyzer();
-        analyzer.fftSize = 2048;
+        // Create buffer source
+        const source = audioContextRef.current.createBufferSource();
+        source.buffer = audioBuffer;
 
         // Setup Meyda for audio engineering metrics
-        const analyzer = Meyda.createMeydaAnalyzer({
-            AudioContext: audioContextRef.current,
-            source: analyser,
+        analyzerRef.current = Meyda.createMeydaAnalyzer({
+            audioContext: audioContextRef.current,
+            source: source,
             bufferSize: 512,
-            featureExtractors: ['rms', 'zcr', 'spectralCentroid'],
-            callback: (features) => {
-                console.log("RMS Level:", features.rms); // For UI meters
-            },
+            featureExtractors: ['rms', 'zcr'],
+            callback: (features) => setAudioData(features),
         });
 
-        analyzer.start();
+        source.connect(audioContextRef.current.destination);
+        source.start();
+        analyzerRef.current.start();
+    };
 
-        return () => analyzer.stop();
-    }, [audioFile]);
 
     return (
-        <div>Canvas</div>
-    )
-}
+        <div className="p-4 border rounded shadow">
+            <button onClick={startAnalysis} className="bg-blue-500 text-white px-4 py-2 rounded">
+                Analyze Session
+            </button>
+            <div className="mt-4">
+                <p>RMS Level (Loudness): <strong>{audioData.rms.toFixed(4)}</strong></p>
+                <p>Zero Crossing Rate (Noise/Pitch): <strong>{audioData.zcr}</strong></p>
+            </div>
+        </div>
+    );
+};
+
+export default AudioAnalyzer;
